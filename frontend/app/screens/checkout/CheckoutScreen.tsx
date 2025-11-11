@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,14 +15,34 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { orderAPI, cartAPI } from '../../services/api';
+import RazorpayCheckout from 'react-native-razorpay';
+import { orderAPI, paymentAPI, cartAPI } from '../../services/api';
 import { Colors } from '../../constants/Colors';
 import { Header } from '../../components/Header';
+
+type PaymentMethod = 'cod' | 'razorpay';
 
 export default function CheckoutScreen() {
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [deliveryPhone, setDeliveryPhone] = useState('');
   const [loading, setLoading] = useState(false);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod>('cod');
+  const [cartTotal, setCartTotal] = useState(0);
+
+  useEffect(() => {
+    loadCart();
+  }, []);
+
+  const loadCart = async () => {
+    try {
+      const cart = await cartAPI.get();
+      if (cart) {
+        setCartTotal(cart.total_amount);
+      }
+    } catch (error) {
+      console.error('Error loading cart:', error);
+    }
+  };
 
   const handlePlaceOrder = async () => {
     if (!deliveryAddress || !deliveryPhone) {
@@ -30,9 +50,29 @@ export default function CheckoutScreen() {
       return;
     }
 
+    // Validate phone number
+    if (!/^[0-9]{10}$/.test(deliveryPhone)) {
+      Alert.alert('Error', 'Please enter a valid 10-digit phone number');
+      return;
+    }
+
     setLoading(true);
     try {
-      await orderAPI.create(deliveryAddress, deliveryPhone);
+      if (selectedPaymentMethod === 'cod') {
+        await handleCODOrder();
+      } else {
+        await handleOnlinePayment();
+      }
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Failed to place order');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCODOrder = async () => {
+    try {
+      await orderAPI.create(deliveryAddress, deliveryPhone, 'cod');
       Alert.alert('Success', 'Order placed successfully!', [
         {
           text: 'OK',
@@ -40,7 +80,68 @@ export default function CheckoutScreen() {
         },
       ]);
     } catch (error: any) {
-      Alert.alert('Error', error.message);
+      throw new Error(error.message || 'Failed to place COD order');
+    }
+  };
+
+  const handleOnlinePayment = async () => {
+    try {
+      // Create order first
+      const order = await orderAPI.create(deliveryAddress, deliveryPhone, 'razorpay');
+      
+      // Create Razorpay order
+      const razorpayOrder = await paymentAPI.createRazorpayOrder(order.id);
+      
+      // Open Razorpay checkout
+      const options = {
+        description: 'MediMart Order Payment',
+        image: 'https://i.imgur.com/3g7nmJC.png',
+        currency: razorpayOrder.currency,
+        key: razorpayOrder.key_id,
+        amount: razorpayOrder.amount,
+        name: 'MediMart',
+        order_id: razorpayOrder.order_id,
+        prefill: {
+          contact: deliveryPhone,
+          name: 'Customer',
+        },
+        theme: { color: Colors.primary },
+      };
+
+      RazorpayCheckout.open(options)
+        .then(async (data: any) => {
+          // Payment successful, verify it
+          await handlePaymentSuccess(data, order.id);
+        })
+        .catch((error: any) => {
+          // Payment failed or cancelled
+          Alert.alert('Payment Failed', error.description || 'Payment was cancelled');
+        });
+    } catch (error: any) {
+      throw new Error(error.message || 'Failed to initiate payment');
+    }
+  };
+
+  const handlePaymentSuccess = async (paymentData: any, orderId: string) => {
+    try {
+      setLoading(true);
+      
+      // Verify payment with backend
+      await paymentAPI.verifyPayment({
+        razorpay_order_id: paymentData.razorpay_order_id,
+        razorpay_payment_id: paymentData.razorpay_payment_id,
+        razorpay_signature: paymentData.razorpay_signature,
+        order_id: orderId,
+      });
+      
+      Alert.alert('Success', 'Payment successful! Order placed.', [
+        {
+          text: 'OK',
+          onPress: () => router.replace('/orders'),
+        },
+      ]);
+    } catch (error: any) {
+      Alert.alert('Error', 'Payment verification failed. Please contact support.');
     } finally {
       setLoading(false);
     }
