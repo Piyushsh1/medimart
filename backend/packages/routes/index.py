@@ -12,6 +12,7 @@ from .reviews import router as reviews_router
 from .lab_tests import router as lab_tests_router
 from .consultations import router as consultations_router
 from .init_data import router as init_data_router
+from .payments import router as payments_router
 
 api_router = APIRouter(prefix="/api")
 
@@ -27,3 +28,4 @@ api_router.include_router(reviews_router)
 api_router.include_router(lab_tests_router)
 api_router.include_router(consultations_router)
 api_router.include_router(init_data_router)
+api_router.include_router(payments_router)
