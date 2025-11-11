@@ -95,6 +95,16 @@ export default function CheckoutScreen() {
 
   const handleOnlinePayment = async () => {
     try {
+      if (Platform.OS === 'web') {
+        Alert.alert('Info', 'Online payment is available on mobile app only. Please use COD for web checkout.');
+        return;
+      }
+
+      if (!RazorpayCheckout) {
+        Alert.alert('Error', 'Payment service not available on this platform');
+        return;
+      }
+
       // Create order first
       const order = await orderAPI.create(deliveryAddress, deliveryPhone, 'razorpay');
       
