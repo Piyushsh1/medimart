@@ -78,6 +78,10 @@ class Order(BaseModel):
     phone: str
     status: str = "placed"
     payment_method: str = "cod"
+    payment_status: str = "pending"  # pending, completed, failed
+    razorpay_order_id: Optional[str] = None
+    razorpay_payment_id: Optional[str] = None
+    razorpay_signature: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
