@@ -184,9 +184,72 @@ export default function CheckoutScreen() {
           {/* Payment Method */}
           <View style={styles.checkoutSection}>
             <Text style={styles.checkoutSectionTitle}>Payment Method</Text>
-            <View style={styles.paymentOption}>
-              <Ionicons name="cash" size={24} color={Colors.success} />
-              <Text style={styles.paymentOptionText}>Cash on Delivery (COD)</Text>
+            
+            {/* Cash on Delivery */}
+            <TouchableOpacity
+              style={[
+                styles.paymentOption,
+                selectedPaymentMethod === 'cod' && styles.paymentOptionSelected,
+              ]}
+              onPress={() => setSelectedPaymentMethod('cod')}
+            >
+              <View style={styles.paymentOptionLeft}>
+                <Ionicons name="cash" size={24} color={Colors.success} />
+                <View style={styles.paymentOptionTextContainer}>
+                  <Text style={styles.paymentOptionText}>Cash on Delivery</Text>
+                  <Text style={styles.paymentOptionSubtext}>Pay when you receive</Text>
+                </View>
+              </View>
+              {selectedPaymentMethod === 'cod' && (
+                <Ionicons name="checkmark-circle" size={24} color={Colors.primary} />
+              )}
+            </TouchableOpacity>
+
+            {/* Online Payment */}
+            <TouchableOpacity
+              style={[
+                styles.paymentOption,
+                selectedPaymentMethod === 'razorpay' && styles.paymentOptionSelected,
+              ]}
+              onPress={() => setSelectedPaymentMethod('razorpay')}
+            >
+              <View style={styles.paymentOptionLeft}>
+                <Ionicons name="card" size={24} color={Colors.primary} />
+                <View style={styles.paymentOptionTextContainer}>
+                  <Text style={styles.paymentOptionText}>Pay Online</Text>
+                  <Text style={styles.paymentOptionSubtext}>UPI, Cards, Wallets & More</Text>
+                </View>
+              </View>
+              {selectedPaymentMethod === 'razorpay' && (
+                <Ionicons name="checkmark-circle" size={24} color={Colors.primary} />
+              )}
+            </TouchableOpacity>
+
+            {/* Payment Icons */}
+            {selectedPaymentMethod === 'razorpay' && (
+              <View style={styles.paymentIconsContainer}>
+                <View style={styles.paymentIconBadge}>
+                  <Ionicons name="logo-google" size={16} color={Colors.primary} />
+                  <Text style={styles.paymentIconText}>UPI</Text>
+                </View>
+                <View style={styles.paymentIconBadge}>
+                  <Ionicons name="card" size={16} color={Colors.primary} />
+                  <Text style={styles.paymentIconText}>Cards</Text>
+                </View>
+                <View style={styles.paymentIconBadge}>
+                  <Ionicons name="wallet" size={16} color={Colors.primary} />
+                  <Text style={styles.paymentIconText}>Wallets</Text>
+                </View>
+              </View>
+            )}
+          </View>
+
+          {/* Order Summary */}
+          <View style={styles.checkoutSection}>
+            <Text style={styles.checkoutSectionTitle}>Order Summary</Text>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Total Amount</Text>
+              <Text style={styles.summaryValue}>₹{cartTotal.toFixed(2)}</Text>
             </View>
           </View>
         </ScrollView>
