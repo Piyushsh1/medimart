@@ -176,14 +176,41 @@ export const cartAPI = {
 
 // Order APIs
 export const orderAPI = {
-  create: (deliveryAddress: string, phone: string) =>
-    fetchWithAuth(`/api/orders?delivery_address=${encodeURIComponent(deliveryAddress)}&phone=${phone}`, {
+  create: (deliveryAddress: string, phone: string, paymentMethod: string = 'cod') =>
+    fetchWithAuth(`/api/orders?delivery_address=${encodeURIComponent(deliveryAddress)}&phone=${phone}&payment_method=${paymentMethod}`, {
       method: 'POST',
     }),
   getAll: () => fetchWithAuth('/api/orders'),
   getById: (id: string) => fetchWithAuth(`/api/orders/${id}`),
   updateStatus: (id: string, status: string) =>
     fetchWithAuth(`/api/orders/${id}/status?status=${status}`, { method: 'PUT' }),
+};
+
+// Payment APIs
+export const paymentAPI = {
+  createRazorpayOrder: (orderId: string) => 
+    fetchWithAuth(`/api/payments/create-razorpay-order?order_id=${orderId}`, {
+      method: 'POST',
+    }),
+  verifyPayment: (data: {
+    razorpay_order_id: string;
+    razorpay_payment_id: string;
+    razorpay_signature: string;
+    order_id: string;
+  }) =>
+    fetchWithAuth('/api/payments/verify', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  getPaymentMethods: () => fetchWithAuth('/api/payments/methods'),
+  savePaymentMethod: (data: any) =>
+    fetchWithAuth('/api/payments/methods', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  deletePaymentMethod: (methodId: string) =>
+    fetchWithAuth(`/api/payments/methods/${methodId}`, { method: 'DELETE' }),
+  getTransaction: (orderId: string) => fetchWithAuth(`/api/payments/transaction/${orderId}`),
 };
 
 // Profile APIs
