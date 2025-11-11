@@ -2,14 +2,20 @@ from fastapi import APIRouter, HTTPException, Depends
 from typing import List
 from datetime import datetime
 from ..context.db import db
-from ..context.models import Order
+from ..context.models import Order, CreateOrderRequest
 from ..context.security import get_current_user
 from ..context.socket import sio
 
 router = APIRouter(tags=["orders"])
 
 @router.post("/orders", response_model=Order)
-async def create_order(delivery_address: str, phone: str, current_user: dict = Depends(get_current_user)):
+async def create_order(
+    delivery_address: str, 
+    phone: str, 
+    payment_method: str = "cod",
+    current_user: dict = Depends(get_current_user)
+):
+    """Create an order from cart"""
     cart = await db.carts.find_one({"user_id": current_user["id"]})
     if not cart:
         raise HTTPException(status_code=404, detail="Cart is empty")
@@ -18,6 +24,9 @@ async def create_order(delivery_address: str, phone: str, current_user: dict = D
     if cart["total_amount"] < pharmacy["minimum_order"]:
         raise HTTPException(status_code=400, detail=f"Minimum order amount is ₹{pharmacy['minimum_order']}")
 
+    # Determine payment status based on payment method
+    payment_status = "completed" if payment_method == "cod" else "pending"
+
     new_order = Order(
         user_id=current_user["id"],
         pharmacy_id=cart["pharmacy_id"],
@@ -25,17 +34,22 @@ async def create_order(delivery_address: str, phone: str, current_user: dict = D
         total_amount=cart["total_amount"],
         delivery_address=delivery_address,
         phone=phone,
+        payment_method=payment_method,
+        payment_status=payment_status,
     )
 
     await db.orders.insert_one(new_order.dict())
 
-    await db.carts.delete_one({"user_id": current_user["id"]})
-
-    for item in cart["items"]:
-        await db.medicines.update_one(
-            {"id": item["medicine_id"]},
-            {"$inc": {"stock_quantity": -item["quantity"]}},
-        )
+    # Only clear cart and reduce stock for COD orders
+    # For online payment, this will be done after payment verification
+    if payment_method == "cod":
+        await db.carts.delete_one({"user_id": current_user["id"]})
+        
+        for item in cart["items"]:
+            await db.medicines.update_one(
+                {"id": item["medicine_id"]},
+                {"$inc": {"stock_quantity": -item["quantity"]}},
+            )
 
     await sio.emit('order_created', {
         'order_id': new_order.id,
