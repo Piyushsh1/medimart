@@ -15,10 +15,19 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import RazorpayCheckout from 'react-native-razorpay';
 import { orderAPI, paymentAPI, cartAPI } from '../../services/api';
 import { Colors } from '../../constants/Colors';
 import { Header } from '../../components/Header';
+
+// Conditionally import RazorpayCheckout only on native platforms
+let RazorpayCheckout: any = null;
+if (Platform.OS !== 'web') {
+  try {
+    RazorpayCheckout = require('react-native-razorpay');
+  } catch (e) {
+    console.warn('Razorpay not available on this platform');
+  }
+}
 
 type PaymentMethod = 'cod' | 'razorpay';
 
