@@ -54,14 +54,25 @@ export default function CheckoutScreen() {
   };
 
   const handlePlaceOrder = async () => {
-    if (!deliveryAddress || !deliveryPhone) {
-      Alert.alert('Error', 'Please fill delivery address and phone');
+    // Validation
+    if (!deliveryAddress.trim()) {
+      Alert.alert('Validation Error', 'Please enter delivery address');
       return;
     }
 
-    // Validate phone number
-    if (!/^[0-9]{10}$/.test(deliveryPhone)) {
-      Alert.alert('Error', 'Please enter a valid 10-digit phone number');
+    if (deliveryAddress.trim().length < 10) {
+      Alert.alert('Validation Error', 'Please enter a complete delivery address');
+      return;
+    }
+
+    if (!deliveryPhone.trim()) {
+      Alert.alert('Validation Error', 'Please enter phone number');
+      return;
+    }
+
+    // Validate phone number (Indian format: 10 digits starting with 6-9)
+    if (!/^[6-9][0-9]{9}$/.test(deliveryPhone)) {
+      Alert.alert('Validation Error', 'Please enter a valid 10-digit phone number starting with 6-9');
       return;
     }
 
