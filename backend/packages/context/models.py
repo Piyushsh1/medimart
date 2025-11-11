@@ -157,6 +157,44 @@ class Consultation(BaseModel):
     symptoms: Optional[str] = ""
     diagnosis: Optional[str] = ""
     prescription_url: Optional[str] = None
+
+class PaymentMethod(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    method_type: str  # upi, card, netbanking, wallet
+    is_default: bool = False
+    # Card details (last 4 digits only for display)
+    card_last4: Optional[str] = None
+    card_network: Optional[str] = None  # visa, mastercard, amex
+    # UPI details
+    upi_id: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class Transaction(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    order_id: str
+    amount: float
+    payment_method: str
+    status: str = "initiated"  # initiated, success, failed, refunded
+    razorpay_order_id: Optional[str] = None
+    razorpay_payment_id: Optional[str] = None
+    razorpay_signature: Optional[str] = None
+    error_message: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class CreateOrderRequest(BaseModel):
+    delivery_address: str
+    phone: str
+    payment_method: str  # cod, razorpay
+
+class VerifyPaymentRequest(BaseModel):
+    razorpay_order_id: str
+    razorpay_payment_id: str
+    razorpay_signature: str
+    order_id: str
+
     notes: Optional[str] = ""
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
