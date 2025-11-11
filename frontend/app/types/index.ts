@@ -132,3 +132,29 @@ export interface Consultation {
   created_at: string;
   updated_at: string;
 }
+
+export interface PaymentMethod {
+  id: string;
+  user_id: string;
+  method_type: 'upi' | 'card' | 'netbanking' | 'wallet';
+  is_default: boolean;
+  card_last4?: string;
+  card_network?: string;
+  upi_id?: string;
+  created_at: string;
+}
+
+export interface Transaction {
+  id: string;
+  user_id: string;
+  order_id: string;
+  amount: number;
+  payment_method: string;
+  status: 'initiated' | 'success' | 'failed' | 'refunded';
+  razorpay_order_id?: string;
+  razorpay_payment_id?: string;
+  razorpay_signature?: string;
+  error_message?: string;
+  created_at: string;
+  updated_at: string;
+}
