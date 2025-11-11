@@ -61,7 +61,12 @@ export interface Order {
   phone: string;
   status: string;
   payment_method: string;
+  payment_status: 'pending' | 'completed' | 'failed';
+  razorpay_order_id?: string;
+  razorpay_payment_id?: string;
+  razorpay_signature?: string;
   created_at: string;
+  updated_at?: string;
 }
 
 export interface Address {
