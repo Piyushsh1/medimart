@@ -1,0 +1,97 @@
+/home/piyush/Downloads/update/app/backend/server.py:734: DeprecationWarning: 
+        on_event is deprecated, use lifespan event handlers instead.
+
+        Read more about it in the
+        [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+        
+  @app.on_event("shutdown")
+INFO:     Started server process [29015]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+2025-10-29 21:51:21,385 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "/home/piyush/Downloads/update/app/backend/.venv/lib/python3.12/site-packages/passlib/handlers/bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+/home/piyush/Downloads/update/app/backend/server.py:204: PydanticDeprecatedSince20: The `dict` method is deprecated; use `model_dump` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+  user_dict = user.dict()
+/home/piyush/Downloads/update/app/backend/server.py:208: PydanticDeprecatedSince20: The `dict` method is deprecated; use `model_dump` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+  await db.users.insert_one(new_user.dict())
+/home/piyush/Downloads/update/app/backend/server.py:167: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  expire = datetime.utcnow() + expires_delta
+INFO:     127.0.0.1:46036 - "POST /api/register HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40186 - "POST /api/register HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:51974 - "OPTIONS /api/register HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51982 - "POST /api/register HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51982 - "OPTIONS /api/init-data HTTP/1.1" 200 OK
+/home/piyush/Downloads/update/app/backend/server.py:653: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  "created_at": datetime.utcnow()
+/home/piyush/Downloads/update/app/backend/server.py:666: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  "created_at": datetime.utcnow()
+/home/piyush/Downloads/update/app/backend/server.py:679: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  "created_at": datetime.utcnow()
+/home/piyush/Downloads/update/app/backend/server.py:704: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  "created_at": datetime.utcnow()
+INFO:     127.0.0.1:51974 - "POST /api/init-data HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51974 - "OPTIONS /api/pharmacies HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51982 - "OPTIONS /api/cart HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51986 - "GET /api/pharmacies HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51974 - "GET /api/cart HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51974 - "OPTIONS /api/profile HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51986 - "OPTIONS /api/addresses HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51982 - "GET /api/profile HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51974 - "GET /api/addresses HTTP/1.1" 200 OK
+INFO:     192.168.1.17:55073 - "POST /api/login HTTP/1.1" 200 OK
+INFO:     192.168.1.17:55073 - "POST /api/init-data HTTP/1.1" 200 OK
+INFO:     192.168.1.17:55073 - "GET /api/pharmacies HTTP/1.1" 200 OK
+INFO:     192.168.1.17:55074 - "GET /api/cart HTTP/1.1" 200 OK
+INFO:     192.168.1.17:55078 - "GET /api/orders HTTP/1.1" 200 OK
+INFO:     192.168.1.17:55078 - "GET /api/pharmacies/ef8a1b14-2c21-42c5-ada8-7bb025275f1b HTTP/1.1" 200 OK
+INFO:     192.168.1.17:55079 - "GET /api/pharmacies/ef8a1b14-2c21-42c5-ada8-7bb025275f1b/medicines HTTP/1.1" 200 OK
+/home/piyush/Downloads/update/app/backend/server.py:320: PydanticDeprecatedSince20: The `dict` method is deprecated; use `model_dump` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+  await db.carts.insert_one(new_cart.dict())
+INFO:     192.168.1.17:55078 - "POST /api/cart/add?medicine_id=2c6bbe00-5b08-463b-838b-79009aaeb584&quantity=1 HTTP/1.1" 200 OK
+INFO:     192.168.1.17:55081 - "GET /api/profile HTTP/1.1" 200 OK
+INFO:     192.168.1.17:55082 - "GET /api/addresses HTTP/1.1" 200 OK
+INFO:     192.168.1.17:55081 - "GET /api/orders HTTP/1.1" 200 OK
+INFO:     192.168.1.17:55085 - "GET /api/pharmacies/3f48e9c1-7a06-43b1-b5dc-e7338dbc2f19 HTTP/1.1" 200 OK
+INFO:     192.168.1.17:55086 - "GET /api/pharmacies/3f48e9c1-7a06-43b1-b5dc-e7338dbc2f19/medicines HTTP/1.1" 200 OK
+INFO:     192.168.1.17:55085 - "POST /api/cart/add?medicine_id=c574c959-8653-48f0-a2b0-c6657c1aec80&quantity=1 HTTP/1.1" 400 Bad Request
+INFO:     192.168.1.17:55085 - "POST /api/cart/add?medicine_id=c574c959-8653-48f0-a2b0-c6657c1aec80&quantity=1 HTTP/1.1" 400 Bad Request
+INFO:     192.168.1.17:55085 - "POST /api/cart/add?medicine_id=ac2de2e5-46db-4818-82fa-79146cf2c959&quantity=1 HTTP/1.1" 400 Bad Request
+INFO:     192.168.1.17:55087 - "POST /api/cart/add?medicine_id=efedcb77-4f16-433d-86fc-49dde61279e1&quantity=1 HTTP/1.1" 400 Bad Request
+INFO:     192.168.1.17:55087 - "GET /api/medicines/efedcb77-4f16-433d-86fc-49dde61279e1 HTTP/1.1" 200 OK
+INFO:     192.168.1.17:55088 - "GET /api/medicines/efedcb77-4f16-433d-86fc-49dde61279e1/reviews HTTP/1.1" 200 OK
+INFO:     192.168.1.17:55089 - "GET /api/medicines/efedcb77-4f16-433d-86fc-49dde61279e1/alternatives HTTP/1.1" 200 OK
+INFO:     192.168.1.17:55090 - "GET /api/medicines/efedcb77-4f16-433d-86fc-49dde61279e1 HTTP/1.1" 200 OK
+INFO:     192.168.1.17:55091 - "GET /api/medicines/efedcb77-4f16-433d-86fc-49dde61279e1/reviews HTTP/1.1" 200 OK
+INFO:     192.168.1.17:55092 - "GET /api/medicines/efedcb77-4f16-433d-86fc-49dde61279e1/alternatives HTTP/1.1" 200 OK
+INFO:     192.168.1.17:55090 - "POST /api/cart/add?medicine_id=efedcb77-4f16-433d-86fc-49dde61279e1&quantity=1 HTTP/1.1" 400 Bad Request
+INFO:     192.168.1.17:55090 - "POST /api/cart/add?medicine_id=efedcb77-4f16-433d-86fc-49dde61279e1&quantity=1 HTTP/1.1" 400 Bad Request
+INFO:     192.168.1.17:55110 - "GET /api/pharmacies/ef8a1b14-2c21-42c5-ada8-7bb025275f1b HTTP/1.1" 200 OK
+INFO:     192.168.1.17:55111 - "GET /api/pharmacies/ef8a1b14-2c21-42c5-ada8-7bb025275f1b/medicines HTTP/1.1" 200 OK
+INFO:     192.168.1.17:55110 - "GET /api/medicines/87ef4b1b-6e42-4516-9fbb-4d5f45bbf6aa HTTP/1.1" 200 OK
+INFO:     192.168.1.17:55111 - "GET /api/medicines/87ef4b1b-6e42-4516-9fbb-4d5f45bbf6aa/reviews HTTP/1.1" 200 OK
+INFO:     192.168.1.17:55112 - "GET /api/medicines/87ef4b1b-6e42-4516-9fbb-4d5f45bbf6aa/alternatives HTTP/1.1" 200 OK
+/home/piyush/Downloads/update/app/backend/server.py:337: PydanticDeprecatedSince20: The `dict` method is deprecated; use `model_dump` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+  items.append(cart_item.dict())
+INFO:     192.168.1.17:55110 - "POST /api/cart/add?medicine_id=87ef4b1b-6e42-4516-9fbb-4d5f45bbf6aa&quantity=1 HTTP/1.1" 200 OK
+INFO:     192.168.1.17:55115 - "GET /api/medicines/74bd18b5-89a6-43b9-a0d6-196e81b79e39 HTTP/1.1" 200 OK
+INFO:     192.168.1.17:55116 - "GET /api/medicines/74bd18b5-89a6-43b9-a0d6-196e81b79e39/reviews HTTP/1.1" 200 OK
+INFO:     192.168.1.17:55117 - "GET /api/medicines/74bd18b5-89a6-43b9-a0d6-196e81b79e39/alternatives HTTP/1.1" 200 OK
+INFO:     192.168.1.17:55118 - "GET /api/profile HTTP/1.1" 200 OK
+INFO:     192.168.1.17:55119 - "GET /api/addresses HTTP/1.1" 200 OK
+INFO:     192.168.1.17:55120 - "GET /api/orders HTTP/1.1" 200 OK
+INFO:     192.168.1.17:55122 - "GET /api/pharmacies/0b58e4f6-3cc4-4d51-9d88-008e1a0562e7 HTTP/1.1" 200 OK
+INFO:     192.168.1.17:55123 - "GET /api/pharmacies/0b58e4f6-3cc4-4d51-9d88-008e1a0562e7/medicines HTTP/1.1" 200 OK
+INFO:     192.168.1.17:55140 - "GET /api/orders HTTP/1.1" 200 OK
+INFO:     192.168.1.17:55140 - "GET /api/pharmacies HTTP/1.1" 200 OK
+INFO:     192.168.1.17:55142 - "GET /api/cart HTTP/1.1" 200 OK
+INFO:     192.168.1.17:55140 - "GET /api/orders HTTP/1.1" 200 OK
+INFO:     192.168.1.17:55140 - "GET /api/pharmacies HTTP/1.1" 200 OK
+INFO:     192.168.1.17:55142 - "GET /api/cart HTTP/1.1" 200 OK
+INFO:     192.168.1.17:55140 - "GET /api/profile HTTP/1.1" 200 OK
+INFO:     192.168.1.17:55142 - "GET /api/addresses HTTP/1.1" 200 OK
+INFO:     192.168.1.17:55140 - "GET /api/orders HTTP/1.1" 200 OK
