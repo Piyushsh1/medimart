@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, Alert, ActivityIndicator, TextInput, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
@@ -19,6 +19,8 @@ export default function PharmacyDetailScreen() {
   const [medicines, setMedicines] = useState<Medicine[]>([]);
   const [cart, setCart] = useState<any>(null);
   const [cartLoading, setCartLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchFocused, setSearchFocused] = useState(false);
 
   // Update only cart data without refreshing the whole page
   const updateCartData = useCallback(async () => {
@@ -169,6 +171,16 @@ export default function PharmacyDetailScreen() {
     return medicineQuantities[String(medicineId)] || 0;
   };
 
+  const filteredMedicines = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return medicines;
+    return medicines.filter((m) =>
+      (m.name && m.name.toLowerCase().includes(q)) ||
+      (m.description && m.description.toLowerCase().includes(q)) ||
+      (m.category && m.category.toLowerCase().includes(q))
+    );
+  }, [medicines, searchQuery]);
+
   const handleAddToCart = async (medicineId: string) => {
     if (!getAuthToken()) {
       Alert.alert('Login required', 'Please login to add items to cart.', [
@@ -225,10 +237,29 @@ export default function PharmacyDetailScreen() {
         </View>
       </View>
 
+      {/* Search within this pharmacy */}
+      <View style={[styles.searchContainer, searchFocused && styles.searchContainerFocused]}>
+        <Ionicons name="search" size={20} color={searchFocused ? Colors.blue : Colors.textLight} style={styles.searchIcon} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search medicines in this pharmacy..."
+          placeholderTextColor={Colors.textLighter}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          onFocus={() => setSearchFocused(true)}
+          onBlur={() => setSearchFocused(false)}
+        />
+        {searchQuery.length > 0 && (
+          <TouchableOpacity style={styles.clearButton} onPress={() => setSearchQuery('')}>
+            <Ionicons name="close" size={16} color={searchFocused ? Colors.blue : Colors.textLight} />
+          </TouchableOpacity>
+        )}
+      </View>
+
       {/* Medicines */}
       <ScrollView style={styles.medicinesContainer} showsVerticalScrollIndicator={false}>
         <Text style={styles.sectionTitle}>Available Medicines</Text>
-        {medicines.map((medicine) => (
+        {filteredMedicines.map((medicine) => (
           <MedicineCard
             key={medicine.id}
             medicine={medicine}
@@ -306,6 +337,44 @@ const styles = StyleSheet.create({
   medicinesContainer: {
     flex: 1,
     paddingTop: 16,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 4,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  searchContainerFocused: {
+    borderColor: Colors.blue,
+    shadowOpacity: 0.1,
+    elevation: 3,
+  },
+  searchIcon: {
+    marginRight: 12,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: Colors.text,
+  },
+  clearButton: {
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 12,
+    backgroundColor: Colors.surfaceHover,
+    marginLeft: 8,
   },
   sectionTitle: {
     fontSize: 20,

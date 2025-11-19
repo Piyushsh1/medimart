@@ -13,9 +13,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { orderAPI, paymentAPI, cartAPI } from '../../services/api';
+import { orderAPI, paymentAPI, cartAPI, addressAPI, profileAPI } from '../../services/api';
 import { Colors } from '../../constants/Colors';
 import { Header } from '../../components/Header';
 
@@ -32,15 +32,25 @@ if (Platform.OS !== 'web') {
 type PaymentMethod = 'cod' | 'razorpay';
 
 export default function CheckoutScreen() {
-  const [deliveryAddress, setDeliveryAddress] = useState('');
-  const [deliveryPhone, setDeliveryPhone] = useState('');
+  const [selectedAddress, setSelectedAddress] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod>('cod');
   const [cartTotal, setCartTotal] = useState(0);
+  const [userPhone, setUserPhone] = useState('');
 
   useEffect(() => {
     loadCart();
+    loadAddresses();
   }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const reloadAddresses = async () => {
+        await loadAddresses();
+      };
+      reloadAddresses();
+    }, [])
+  );
 
   const loadCart = async () => {
     try {
@@ -53,35 +63,66 @@ export default function CheckoutScreen() {
     }
   };
 
+  // Charges identical to CartScreen
+  const handlingCharges = cartTotal >= 500 ? 0 : 20;
+  const deliveryFee = cartTotal >= 300 ? 0 : 40;
+  const finalTotal = cartTotal + handlingCharges + deliveryFee;
+
+  const loadAddresses = async () => {
+    try {
+      const [addresses, profile] = await Promise.all([
+        addressAPI.getAll(),
+        profileAPI.get().catch(() => null),
+      ]);
+
+      if (profile && profile.phone) setUserPhone(profile.phone);
+
+      // Check for address selected via AddressScreen
+      try {
+        const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+        const selectedAddressId = await AsyncStorage.getItem('selectedAddressId');
+        if (selectedAddressId) {
+          const selected = addresses.find((a: any) => a.id === selectedAddressId);
+          if (selected) {
+            setSelectedAddress(selected);
+            await AsyncStorage.removeItem('selectedAddressId');
+            return;
+          }
+        }
+      } catch (e) {}
+
+      // Default address or first
+      const def = addresses.find((a: any) => a.is_default);
+      setSelectedAddress(def || addresses[0] || null);
+    } catch (error) {
+      // ignore address load failure in checkout
+    }
+  };
+
   const handlePlaceOrder = async () => {
     // Validation
-    if (!deliveryAddress.trim()) {
-      Alert.alert('Validation Error', 'Please enter delivery address');
+    if (!selectedAddress) {
+      Alert.alert('Select Address', 'Please select a delivery address');
       return;
     }
 
-    if (deliveryAddress.trim().length < 10) {
-      Alert.alert('Validation Error', 'Please enter a complete delivery address');
+    const constructedAddress = `${selectedAddress.address_line1}${selectedAddress.address_line2 ? ', ' + selectedAddress.address_line2 : ''}, ${selectedAddress.city}, ${selectedAddress.state} - ${selectedAddress.pincode}`;
+    const phoneToUse = (selectedAddress.phone || userPhone || '').trim();
+    if (!phoneToUse) {
+      Alert.alert('Validation Error', 'Please add a phone number to your address');
       return;
     }
-
-    if (!deliveryPhone.trim()) {
-      Alert.alert('Validation Error', 'Please enter phone number');
-      return;
-    }
-
-    // Validate phone number (Indian format: 10 digits starting with 6-9)
-    if (!/^[6-9][0-9]{9}$/.test(deliveryPhone)) {
-      Alert.alert('Validation Error', 'Please enter a valid 10-digit phone number starting with 6-9');
+    if (!/^[6-9][0-9]{9}$/.test(phoneToUse)) {
+      Alert.alert('Validation Error', 'Please use a valid 10-digit phone number starting with 6-9');
       return;
     }
 
     setLoading(true);
     try {
       if (selectedPaymentMethod === 'cod') {
-        await handleCODOrder();
+        await handleCODOrder(constructedAddress, phoneToUse);
       } else {
-        await handleOnlinePayment();
+        await handleOnlinePayment(constructedAddress, phoneToUse);
       }
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Failed to place order');
@@ -90,7 +131,7 @@ export default function CheckoutScreen() {
     }
   };
 
-  const handleCODOrder = async () => {
+  const handleCODOrder = async (deliveryAddress: string, deliveryPhone: string) => {
     try {
       await orderAPI.create(deliveryAddress, deliveryPhone, 'cod');
       Alert.alert('Success', 'Order placed successfully!', [
@@ -104,7 +145,7 @@ export default function CheckoutScreen() {
     }
   };
 
-  const handleOnlinePayment = async () => {
+  const handleOnlinePayment = async (deliveryAddress: string, deliveryPhone: string) => {
     try {
       if (Platform.OS === 'web') {
         Alert.alert('Info', 'Online payment is available on mobile app only. Please use COD for web checkout.');
@@ -188,27 +229,48 @@ export default function CheckoutScreen() {
           <View style={styles.checkoutSection}>
             <Text style={styles.checkoutSectionTitle}>Delivery Details</Text>
 
-            <View style={styles.inputContainer}>
-              <Ionicons name="location-outline" size={20} color={Colors.textLight} style={styles.inputIcon} />
-              <TextInput
-                style={styles.input}
-                placeholder="Delivery Address"
-                value={deliveryAddress}
-                onChangeText={setDeliveryAddress}
-                multiline
-              />
+            <View style={styles.addressHeaderRow}>
+              <View style={styles.addressHeaderLeft}>
+                <Ionicons name="location" size={20} color={Colors.primary} />
+                <Text style={styles.addressHeaderTitle}>Delivery Address</Text>
+              </View>
+              <TouchableOpacity onPress={() => router.push('/addresses?select=true')}>
+                <Text style={styles.changeText}>{selectedAddress ? 'Change' : 'Add'}</Text>
+              </TouchableOpacity>
             </View>
 
-            <View style={styles.inputContainer}>
-              <Ionicons name="call-outline" size={20} color={Colors.textLight} style={styles.inputIcon} />
-              <TextInput
-                style={styles.input}
-                placeholder="Phone Number"
-                value={deliveryPhone}
-                onChangeText={setDeliveryPhone}
-                keyboardType="phone-pad"
-              />
-            </View>
+            {selectedAddress ? (
+              <View>
+                <View style={styles.addressLabelRow}>
+                  <View style={styles.addressLabelBadge}>
+                    <Ionicons
+                      name={selectedAddress.label?.toLowerCase() === 'home' ? 'home' : selectedAddress.label?.toLowerCase() === 'office' ? 'business' : 'location'}
+                      size={14}
+                      color={Colors.primary}
+                    />
+                    <Text style={styles.addressLabelText}>{selectedAddress.label || 'Address'}</Text>
+                  </View>
+                  {selectedAddress.is_default && (
+                    <View style={styles.defaultBadge}>
+                      <Text style={styles.defaultText}>Default</Text>
+                    </View>
+                  )}
+                </View>
+                <Text style={styles.addressText}>
+                  {selectedAddress.address_line1}
+                  {selectedAddress.address_line2 ? `, ${selectedAddress.address_line2}` : ''}
+                </Text>
+                <Text style={styles.addressText}>
+                  {selectedAddress.city}, {selectedAddress.state} - {selectedAddress.pincode}
+                </Text>
+                <Text style={styles.addressPhoneText}>Phone: {selectedAddress.phone || userPhone}</Text>
+              </View>
+            ) : (
+              <TouchableOpacity style={styles.addAddressButton} onPress={() => router.push('/addresses?select=true')}>
+                <Ionicons name="add-circle-outline" size={20} color={Colors.primary} />
+                <Text style={styles.addAddressText}>Add delivery address</Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           {/* Payment Method */}
@@ -278,8 +340,25 @@ export default function CheckoutScreen() {
           <View style={styles.checkoutSection}>
             <Text style={styles.checkoutSectionTitle}>Order Summary</Text>
             <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Total Amount</Text>
+              <Text style={styles.summaryLabel}>Subtotal</Text>
               <Text style={styles.summaryValue}>₹{cartTotal.toFixed(2)}</Text>
+            </View>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Handling Charges</Text>
+              <Text style={[styles.summaryValue, handlingCharges === 0 && styles.successText]}>
+                {handlingCharges === 0 ? 'FREE' : `₹${handlingCharges}`}
+              </Text>
+            </View>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Delivery Fee</Text>
+              <Text style={[styles.summaryValue, deliveryFee === 0 && styles.successText]}>
+                {deliveryFee === 0 ? 'FREE' : `₹${deliveryFee}`}
+              </Text>
+            </View>
+            <View style={styles.divider} />
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryTotal}>Total Amount</Text>
+              <Text style={styles.summaryTotalValue}>₹{finalTotal.toFixed(2)}</Text>
             </View>
           </View>
         </ScrollView>
@@ -322,6 +401,28 @@ const styles = StyleSheet.create({
     color: Colors.text,
     marginBottom: 16,
   },
+  addressHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  addressHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  addressHeaderTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.text,
+    marginLeft: 8,
+  },
+  changeText: {
+    fontSize: 14,
+    color: Colors.primary,
+    fontWeight: '500',
+  },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -340,6 +441,64 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: Colors.text,
+  },
+  addressLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    marginLeft: 28,
+    flexWrap: 'wrap',
+  },
+  addressLabelBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.primary + '15',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginRight: 8,
+  },
+  addressLabelText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.primary,
+    marginLeft: 4,
+  },
+  defaultBadge: {
+    backgroundColor: Colors.success,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  defaultText: {
+    fontSize: 9,
+    fontWeight: '600',
+    color: Colors.background,
+  },
+  addressText: {
+    fontSize: 14,
+    color: Colors.textLight,
+    lineHeight: 20,
+    marginLeft: 28,
+    marginTop: 4,
+  },
+  addressPhoneText: {
+    fontSize: 14,
+    color: Colors.textLight,
+    marginLeft: 28,
+    marginTop: 4,
+  },
+  addAddressButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 28,
+    paddingVertical: 8,
+  },
+  addAddressText: {
+    fontSize: 14,
+    color: Colors.primary,
+    fontWeight: '600',
+    marginLeft: 8,
   },
   paymentOption: {
     flexDirection: 'row',
@@ -410,6 +569,24 @@ const styles = StyleSheet.create({
   },
   summaryValue: {
     fontSize: 18,
+    fontWeight: 'bold',
+    color: Colors.primary,
+  },
+  successText: {
+    color: Colors.success,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: Colors.border,
+    marginVertical: 12,
+  },
+  summaryTotal: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: Colors.text,
+  },
+  summaryTotalValue: {
+    fontSize: 20,
     fontWeight: 'bold',
     color: Colors.primary,
   },
